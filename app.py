@@ -8,7 +8,7 @@ import matplotlib.pyplot as mp
 df = pd.read_excel("Adidas.xlsx")
 
 # Set page configuration
-st.set_page_config(page_title="Adidas Dashboard", page_icon=":bar_chart:", layout="wide")
+st.set_page_config(layout="wide")
 
 # Custom CSS for styling
 st.markdown(
