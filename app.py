@@ -3,6 +3,9 @@ import pandas as pd
 import datetime
 import numpy as np
 import matplotlib.pyplot as mp
+import plotly.express as px
+from PIL import Image
+import plotly.gragh_objects as go
 
 # Reading the data from Excel file
 df = pd.read_excel("Adidas.xlsx")
