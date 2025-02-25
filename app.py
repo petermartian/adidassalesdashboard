@@ -50,4 +50,16 @@ with col2:
         box_date = datetime.datetime.now().strftime("%d %b %Y")
         st.write(f"**Last updated by:** [in {box_date}]")
 
-# You can add more content (e.g., data analysis, charts) using df here
+with col4:
+    fig = px.bar(df, x="Retailer", y="TotalSales", labels={"TotalSales": "Total Sales ($)"},
+                 title="Total Sales by Retailer", hover_data=["TotalSales"],
+                 template="gridon", height=500)
+    st.plotly_chart(fig, use_container_width=True)
+
+view1, dwn1, view2, dwn2 = st.columns([0.15, 0.20, 0.20, 0.26])
+
+with view1:
+    expander = st.expander("Retailer wise Sales")
+    data = df[["Retailer", "TotalSales"]].groupby(by="Retailer")["TotalSales"].sum()
+    expander.write(data)
+
