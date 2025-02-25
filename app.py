@@ -2,9 +2,7 @@ import streamlit as st
 import pandas as pd
 import datetime
 import numpy as np
-from PIL import Image
-import plotly.express as px
-import plotly.graph_objects as go
+import matplotlib as mp
 
 # reading the data from excel file
 df = pd.read_excel("Adidas.xlsx")
