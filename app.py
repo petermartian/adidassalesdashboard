@@ -13,3 +13,17 @@ image_path = "adidas-logo.jpg"  # Ensure this file is in the same directory as y
 st.image(image_path, width=100)  # Display the image with a width of 100 pixels
 
 col1, col2 = st.columns([0.8, 0.9])
+with col1:
+  
+  <html title="">
+
+    <style>
+    .title-test {
+        font-weight: bold;
+        padding: 5px;
+        border-radius: 6px;
+    }
+</style>
+
+<center><h1 class="title-test">Adidas Interactive Sales Dashboard</h1></center>
+  
