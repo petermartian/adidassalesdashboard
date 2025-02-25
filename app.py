@@ -16,20 +16,25 @@ st.markdown('<style>div.block-container{padding-top:1rem;}</style>', unsafe_allo
 
 image = Image.open('adidas-logo.jpg')
 
-
-
-# Define HTML title with custom styling
-html_title = """
-<center><h1 class="title-test">Adidas Interactive Sales Dashboard</h1></center>
-"""
-
-# Load and display the image
-image_path = "Adidas-logo.jpg"  # Ensure this file is in the same directory as app.py or provide the full path
-
 # Create two columns (summing to 1.0 for proper layout)
 col1, col2 = st.columns([0.1, 0.9])  # Adjusted to sum to 1.0
 
 with col1:
+    st.image(image,width=100)
+
+html_title = """
+    <style>
+    .title-test {
+        font-weight: bold;
+        padding: 5px;
+        border-radius: 6px;
+    }
+    </style>
+
+<center><h1 class="title-test">Adidas Interactive Sales Dashboard</h1></center>
+"""
+
+with col2:
     st.markdown(html_title, unsafe_allow_html=True)
 
 with col2:
