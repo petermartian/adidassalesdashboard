@@ -31,7 +31,7 @@ html_title = """
 """
 
 # Load and display the image
-image_path = "adidas-logo.jpg"  # Ensure this file is in the same directory as app.py or provide the full path
+image_path = "Adidas-logo.jpg"  # Ensure this file is in the same directory as app.py or provide the full path
 
 # Create two columns (summing to 1.0 for proper layout)
 col1, col2 = st.columns([0.1, 0.9])  # Adjusted to sum to 1.0
