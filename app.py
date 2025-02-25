@@ -10,23 +10,13 @@ import plotly.gragh_objects as go
 # Reading the data from Excel file
 df = pd.read_excel("Adidas.xlsx")
 
-# Set page configuration
 st.set_page_config(layout="wide")
 
-# Custom CSS for styling
-st.markdown(
-    """
-    <style>
-    div.block-container {padding-top: 1rem;}
-    .title-test {
-        font-weight: bold;
-        padding: 5px;
-        border-radius: 6px;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+st.markdown('<style>div.block-container{padding-top:1rem;}</style>', unsafe_allow_html=True)
+
+image = Image.open('adidas-logo.jpg')
+
+
 
 # Define HTML title with custom styling
 html_title = """
