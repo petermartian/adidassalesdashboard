@@ -56,4 +56,50 @@ with view1:
     expander = st.expander("Retailer wise Sales")
     data = df[["Retailer", "TotalSales"]].groupby(by="Retailer")["TotalSales"].sum()
     expander.write(data)
+with dwl:
+    st.download_button(
+        "Get Data", 
+        data=data.to_csv().encode("utf-8"), 
+        file_name="RetailerSales.csv", 
+        mime="text/csv"
+    )
+
+# Create a new column 'Month_Year' by formatting the 'InvoiceDate' column
+df["Month_Year"] = df["InvoiceDate"].dt.strftime("%b %y")
+
+# Group the data by 'Month_Year' and sum the 'TotalSales', then reset the index
+result = df.groupby(by=df["Month_Year"])["TotalSales"].sum().reset_index()
+
+with col5:
+    # Create a line chart using Plotly Express
+    fig1 = px.line(
+        result, 
+        x="Month_Year", 
+        y="TotalSales", 
+        title="Total Sales Over Time",
+        template="gridon"
+    )
+    
+    # Display the chart in Streamlit, using full container width
+    st.plotly_chart(fig1, use_container_width=True)
+
+with view2:
+    # Create an expander section titled "Monthly Sales"
+    expander = st.expander("Monthly Sales")
+    
+    # Write the monthly sales data (from 'result') inside the expander
+    data = result
+    expander.write(data)
+
+with dwn2:
+    # Create a download button for the monthly sales data
+    st.download_button(
+        "Get Data", 
+        data=result.to_csv().encode("utf-8"), 
+        file_name="Monthly Sales.csv", 
+        mime="text/csv"
+    )
+
+st.divider()
+
 
