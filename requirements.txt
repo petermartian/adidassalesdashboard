@@ -1,7 +1,6 @@
 streamlit
-pandas
+pandas 
 datetime
-numpy
-matplotlib
-openpyxl
-
+PIL
+plotly.express
+plotly.graph_objects
