@@ -1,6 +1,6 @@
 streamlit
 pandas 
 datetime
-PIL
+PIL.Image
 plotly.express
 plotly.graph_objects
