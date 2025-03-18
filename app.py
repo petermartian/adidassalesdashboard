@@ -1,133 +1,127 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 import datetime
-from PIL import Image
-import plotly.express as px
-import plotly.graph_objects as go
-print("Hello Learners")
 
-# reading the data from excel file
 
-df = pd.read_excel("Adidas.xlsx")
-st.set_page_config(layout="wide")
-st.markdown('<style>div.block-container{padding-top:1rem;}</style>', unsafe_allow_html=True)
-image = Image.open('adidas-logo.jpg')
+# --- Nigerian Tax and Deduction Rules (Simplified) ---
+# You'll need to adjust these based on the latest official guidelines
+PERSONAL_ALLOWANCE = 300000  # Example: NGN 300,000 annual
+TAX_RATES = {
+    300000: 0.07,
+    300000: 0.11,  # Next 300,000
+    500000: 0.15,  # Next 500,000
+    500000: 0.19,  # Next 500,000
+    1600000: 0.21, # Next 1,600,000
+    None: 0.24,     # Above 3,200,000
+}
+PENSION_RATE_EMPLOYEE = 0.08
+PENSION_RATE_EMPLOYER = 0.10
+NHF_RATE = 0.025  # National Housing Fund
 
-col1, col2 = st.columns([0.1,0.9])
-with col1:
-    st.image(image,width=100)
+def calculate_paye(annual_income):
+    taxable_income = max(0, annual_income - PERSONAL_ALLOWANCE)
+    tax_payable = 0
+    bracket_start = 0
+    for limit, rate in TAX_RATES.items():
+        bracket_end = limit if limit is not None else float('inf')
+        taxable_in_bracket = max(0, min(taxable_income, bracket_end) - bracket_start)
+        tax_payable += taxable_in_bracket * rate
+        bracket_start = bracket_end
+        if taxable_income <= bracket_end:
+            break
+    return tax_payable / 12  # Monthly PAYE
 
-html_title = """
-    <style>
-    .title-test {
-    font-weight:bold;
-    padding:5px;
-    border-radius:6px;
-    }
-    </style>
-    <center><h1 class="title-test">Adidas Interactive Sales Dashboard</h1></center>"""
-with col2:
-    st.markdown(html_title, unsafe_allow_html=True)
+def calculate_salary(basic_salary, housing_allowance, transport_allowance, other_allowances=0):
+    gross_salary = basic_salary + housing_allowance + transport_allowance + other_allowances
+    annual_basic_salary = basic_salary * 12
+    paye = calculate_paye(annual_basic_salary)
+    pension_employee = gross_salary * PENSION_RATE_EMPLOYEE
+    nhf = gross_salary * NHF_RATE
+    total_deductions = paye + pension_employee + nhf
+    net_salary = gross_salary - total_deductions
+    pension_employer = gross_salary * PENSION_RATE_EMPLOYER
+    return gross_salary, paye, pension_employee, nhf, total_deductions, net_salary, pension_employer
 
-col3, col4, col5 = st.columns([0.1,0.45,0.45])
-with col3:
-    box_date = str(datetime.datetime.now().strftime("%d %B %Y"))
-    st.write(f"Last updated by:  \n {box_date}")
+def main():
+    st.title("Nigerian Company Salary Calculator")
 
-with col4:
-    fig = px.bar(df, x = "Retailer", y = "TotalSales", labels={"TotalSales" : "Total Sales {$}"},
-                 title = "Total Sales by Retailer", hover_data=["TotalSales"],
-                 template="gridon",height=500)
-    st.plotly_chart(fig,use_container_width=True)
+    tab1, tab2, tab3, tab4 = st.tabs(["Employee Info", "Salary Details", "Results", "About"])
 
-_, view1, dwn1, view2, dwn2 = st.columns([0.15,0.20,0.20,0.20,0.20])
-with view1:
-    expander = st.expander("Retailer wise Sales")
-    data = df[["Retailer","TotalSales"]].groupby(by="Retailer")["TotalSales"].sum()
-    expander.write(data)
-with dwn1:
-    st.download_button("Get Data", data = data.to_csv().encode("utf-8"),
-                       file_name="RetailerSales.csv", mime="text/csv")
+    with tab1:
+        st.header("Employee Information")
+        employee_name = st.text_input("Employee Name")
+        employee_id = st.text_input("Employee ID (Optional)")
+        department = st.text_input("Department (Optional)")
 
-df["Month_Year"] = df["InvoiceDate"].dt.strftime("%b'%y")
-result = df.groupby(by = df["Month_Year"])["TotalSales"].sum().reset_index()
+    with tab2:
+        st.header("Enter Salary Details (Monthly in NGN)")
+        basic_salary = st.number_input("Basic Salary", min_value=0, step=1000)
+        housing_allowance = st.number_input("Housing Allowance", min_value=0, step=1000)
+        transport_allowance = st.number_input("Transport Allowance", min_value=0, step=1000)
+        other_allowances = st.number_input("Other Allowances", min_value=0, step=1000, value=0)
 
-with col5:
-    fig1 = px.line(result, x = "Month_Year", y = "TotalSales", title="Total Sales Over Time",
-                   template="gridon")
-    st.plotly_chart(fig1,use_container_width=True)
+        if st.button("Calculate Salary"):
+            if basic_salary is not None:
+                gross_salary, paye, pension_employee, nhf, total_deductions, net_salary, pension_employer = calculate_salary(
+                    basic_salary, housing_allowance, transport_allowance, other_allowances
+                )
+                st.session_state['results'] = {
+                    'employee_name': employee_name,
+                    'basic_salary': basic_salary,
+                    'housing_allowance': housing_allowance,
+                    'transport_allowance': transport_allowance,
+                    'other_allowances': other_allowances,
+                    'gross_salary': gross_salary,
+                    'paye': paye,
+                    'pension_employee': pension_employee,
+                    'nhf': nhf,
+                    'total_deductions': total_deductions,
+                    'net_salary': net_salary,
+                    'pension_employer': pension_employer,
+                }
+            else:
+                st.warning("Please enter the basic salary to calculate.")
 
-with view2:
-    expander = st.expander("Monthly Sales")
-    data = result
-    expander.write(data)
-with dwn2:
-    st.download_button("Get Data", data = result.to_csv().encode("utf-8"),
-                       file_name="Monthly Sales.csv", mime="text/csv")
-    
-st.divider()
+    with tab3:
+        st.header("Salary Calculation Results")
+        if 'results' in st.session_state:
+            results = st.session_state['results']
+            st.subheader(f"Salary Breakdown for: {results['employee_name']}")
+            st.write(f"**Basic Salary (Monthly):** ₦{results['basic_salary']:,}")
+            st.write(f"**Housing Allowance (Monthly):** ₦{results['housing_allowance']:,}")
+            st.write(f"**Transport Allowance (Monthly):** ₦{results['transport_allowance']:,}")
+            st.write(f"**Other Allowances (Monthly):** ₦{results['other_allowances']:,}")
+            st.write(f"**Gross Salary (Monthly):** ₦{results['gross_salary']:,}")
+            st.write("--- Deductions ---")
+            st.write(f"**PAYE (Monthly):** ₦{results['paye']:,}")
+            st.write(f"**Pension (Employee - 8%):** ₦{results['pension_employee']:,}")
+            st.write(f"**NHF (2.5%):** ₦{results['nhf']:,}")
+            st.write(f"**Total Deductions (Monthly):** ₦{results['total_deductions']:,}")
+            st.write(f"**Net Salary (Monthly):** ₦{results['net_salary']:,}")
+            st.write("--- Employer Contributions ---")
+            st.write(f"**Pension (Employer - 10%):** ₦{results['pension_employer']:,}")
+        else:
+            st.info("Enter salary details in the 'Salary Details' tab and click 'Calculate Salary' to see the results.")
 
-result1 = df.groupby(by="State")[["TotalSales","UnitsSold"]].sum().reset_index()
+    with tab4:
+        st.header("About this Application")
+        st.markdown("""
+        This is a simple web application built with Streamlit to calculate the monthly salary 
+        for employees in a Nigerian company. 
 
-# add the units sold as a line chart on a secondary y-axis
-fig3 = go.Figure()
-fig3.add_trace(go.Bar(x = result1["State"], y = result1["TotalSales"], name = "Total Sales"))
-fig3.add_trace(go.Scatter(x=result1["State"], y = result1["UnitsSold"], mode = "lines",
-                          name ="Units Sold", yaxis="y2"))
-fig3.update_layout(
-    title = "Total Sales and Units Sold by State",
-    xaxis = dict(title="State"),
-    yaxis = dict(title="Total Sales", showgrid = False),
-    yaxis2 = dict(title="Units Sold", overlaying = "y", side = "right"),
-    template = "gridon",
-    legend = dict(x=1,y=1.1)
-)
-_, col6 = st.columns([0.1,1])
-with col6:
-    st.plotly_chart(fig3,use_container_width=True)
+        **Important Notes:**
+        * The tax rates and deduction rules used in this application are simplified examples 
+          and may not reflect the latest official regulations. 
+        * For accurate payroll calculations, always refer to the official guidelines from the 
+          relevant Nigerian tax authorities (e.g., Federal Inland Revenue Service - FIRS) and 
+          pension regulatory bodies.
+        * This application is for illustrative purposes only.
 
-_, view3, dwn3 = st.columns([0.5,0.45,0.45])
-with view3:
-    expander = st.expander("View Data for Sales by Units Sold")
-    expander.write(result1)
-with dwn3:
-    st.download_button("Get Data", data = result1.to_csv().encode("utf-8"), 
-                       file_name = "Sales_by_UnitsSold.csv", mime="text/csv")
-st.divider()
+        Developed by: [Your Name/Organization]
+        Date: March 18, 2025
+        """)
 
-_, col7 = st.columns([0.1,1])
-treemap = df[["Region","City","TotalSales"]].groupby(by = ["Region","City"])["TotalSales"].sum().reset_index()
+if __name__ == "__main__":
+    main()
 
-def format_sales(value):
-    if value >= 0:
-        return '{:.2f} Lakh'.format(value / 1_000_00)
-
-treemap["TotalSales (Formatted)"] = treemap["TotalSales"].apply(format_sales)
-
-fig4 = px.treemap(treemap, path = ["Region","City"], values = "TotalSales",
-                  hover_name = "TotalSales (Formatted)",
-                  hover_data = ["TotalSales (Formatted)"],
-                  color = "City", height = 700, width = 600)
-fig4.update_traces(textinfo="label+value")
-
-with col7:
-    st.subheader(":point_right: Total Sales by Region and City in Treemap")
-    st.plotly_chart(fig4,use_container_width=True)
-
-_, view4, dwn4 = st.columns([0.5,0.45,0.45])
-with view4:
-    result2 = df[["Region","City","TotalSales"]].groupby(by=["Region","City"])["TotalSales"].sum()
-    expander = st.expander("View data for Total Sales by Region and City")
-    expander.write(result2)
-with dwn4:
-    st.download_button("Get Data", data = result2.to_csv().encode("utf-8"),
-                                        file_name="Sales_by_Region.csv", mime="text.csv")
-
-_,view5, dwn5 = st.columns([0.5,0.45,0.45])
-with view5:
-    expander = st.expander("View Sales Raw Data")
-    expander.write(df)
-with dwn5:
-    st.download_button("Get Raw Data", data = df.to_csv().encode("utf-8"),
-                       file_name = "SalesRawData.csv", mime="text/csv")
-st.divider()
