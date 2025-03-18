@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 
+
 # --- Nigerian Tax and Deduction Rules (Based on Image Analysis - Simplified) ---
 # **IMPORTANT:** These are based on a snapshot and might not be fully accurate or up-to-date.
 # Refer to official FIRS guidelines for precise calculations.
@@ -30,7 +31,7 @@ def calculate_paye(annual_income):
             break
     return tax_payable / 12  # Monthly PAYE
 
-def calculate_salary(basic_salary, housing_allowance, transport_allowance, other_allowances=0, pension_contributes=False, nhf_contributes=False):
+def calculate_salary(basic_salary, housing_allowance, transport_allowance, other_allowances=0, include_pension=True, include_nhf=True):
     gross_salary = basic_salary + housing_allowance + transport_allowance + other_allowances
     annual_basic_salary = basic_salary * 12
 
@@ -38,12 +39,12 @@ def calculate_salary(basic_salary, housing_allowance, transport_allowance, other
 
     total_deductions = paye
     pension_employee = 0
-    if pension_contributes:
+    if include_pension:
         pension_employee = gross_salary * PENSION_RATE_EMPLOYEE
         total_deductions += pension_employee
 
     nhf = 0
-    if nhf_contributes:
+    if include_nhf:
         nhf = gross_salary * NHF_RATE
         total_deductions += nhf
 
@@ -69,12 +70,12 @@ def main():
         other_allowances = st.number_input("Other Allowances", min_value=0, value=0, step=1000)
 
         st.subheader("Deductions (Optional)")
-        pension_contributes = st.checkbox("Pension Contribution (8%)", value=False)
-        nhf_contributes = st.checkbox("NHF Contribution (2.5%)", value=False)
+        include_pension = st.checkbox("Include Pension Contribution (8%)", value=False)
+        include_nhf = st.checkbox("Include NHF Contribution (2.5%)", value=False)
 
         if st.button("Calculate"):
             gross_salary, paye, pension_employee, nhf, total_deductions, net_salary = calculate_salary(
-                basic_salary, housing_allowance, transport_allowance, other_allowances, pension_contributes, nhf_contributes
+                basic_salary, housing_allowance, transport_allowance, other_allowances, include_pension, include_nhf
             )
             st.session_state['results'] = {
                 'basic_salary': basic_salary,
