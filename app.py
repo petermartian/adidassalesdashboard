@@ -2,9 +2,6 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 
-
-import streamlit as st
-
 # --- Nigerian Tax and Deduction Rules (Based on Image Analysis - Simplified) ---
 # **IMPORTANT:** These are based on a snapshot and might not be fully accurate or up-to-date.
 # Refer to official FIRS guidelines for precise calculations.
