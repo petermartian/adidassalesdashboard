@@ -17,6 +17,7 @@ TAX_RATES = {
 }
 PENSION_RATE_EMPLOYEE = 0.08  # Assuming standard rate if applicable
 NHF_RATE = 0.025  # Assuming standard rate if applicable
+NHIS_RATE = 0.05   # Assuming a hypothetical rate for NHIS
 
 def calculate_paye(annual_income):
     taxable_income = max(0, annual_income - PERSONAL_ALLOWANCE)
@@ -31,7 +32,7 @@ def calculate_paye(annual_income):
             break
     return tax_payable / 12  # Monthly PAYE
 
-def calculate_salary(basic_salary, housing_allowance, transport_allowance, other_allowances=0, include_pension=True, include_nhf=True):
+def calculate_salary(basic_salary, housing_allowance, transport_allowance, other_allowances=0, include_pension=False, include_nhf=False, include_nhis=False):
     gross_salary = basic_salary + housing_allowance + transport_allowance + other_allowances
     annual_basic_salary = basic_salary * 12
 
@@ -48,14 +49,25 @@ def calculate_salary(basic_salary, housing_allowance, transport_allowance, other
         nhf = gross_salary * NHF_RATE
         total_deductions += nhf
 
+    nhis = 0
+    if include_nhis:
+        nhis = gross_salary * NHIS_RATE
+        total_deductions += nhis
+
     net_salary = gross_salary - total_deductions
 
-    return gross_salary, paye, pension_employee, nhf, total_deductions, net_salary
+    return gross_salary, paye, pension_employee, nhf, nhis, total_deductions, net_salary
 
 def main():
     st.title("Nigerian Salary Calculator")
 
     tab1, tab2, tab3 = st.tabs(["Employee Info", "Salary Input", "Calculation Result"])
+
+    with st.sidebar:
+        st.header("Optional Deductions")
+        include_pension = st.checkbox("Include Pension (8%)", value=False)
+        include_nhf = st.checkbox("Include NHF (2.5%)", value=False)
+        include_nhis = st.checkbox("Include NHIS (5%)", value=False)
 
     with tab1:
         st.header("Employee Information")
@@ -69,13 +81,9 @@ def main():
         transport_allowance = st.number_input("Transport Allowance", min_value=0, value=187500, step=1000)
         other_allowances = st.number_input("Other Allowances", min_value=0, value=0, step=1000)
 
-        st.subheader("Deductions (Optional)")
-        include_pension = st.checkbox("Include Pension Contribution (8%)", value=False)
-        include_nhf = st.checkbox("Include NHF Contribution (2.5%)", value=False)
-
         if st.button("Calculate"):
-            gross_salary, paye, pension_employee, nhf, total_deductions, net_salary = calculate_salary(
-                basic_salary, housing_allowance, transport_allowance, other_allowances, include_pension, include_nhf
+            gross_salary, paye, pension_employee, nhf, nhis, total_deductions, net_salary = calculate_salary(
+                basic_salary, housing_allowance, transport_allowance, other_allowances, include_pension, include_nhf, include_nhis
             )
             st.session_state['results'] = {
                 'basic_salary': basic_salary,
@@ -86,6 +94,7 @@ def main():
                 'paye': paye,
                 'pension_employee': pension_employee,
                 'nhf': nhf,
+                'nhis': nhis,
                 'total_deductions': total_deductions,
                 'net_salary': net_salary,
             }
@@ -108,6 +117,8 @@ def main():
                 st.write(f"**Pension Contribution (8%):** {results['pension_employee']:,.2f}")
             if results['nhf'] > 0:
                 st.write(f"**NHF Contribution (2.5%):** {results['nhf']:,.2f}")
+            if results['nhis'] > 0:
+                st.write(f"**NHIS Contribution (5%):** {results['nhis']:,.2f}")
             st.write(f"**Total Deductions:** {results['total_deductions']:,.2f}")
             st.write(f"**Take-Home Pay:** {results['net_salary']:,.2f}")
 
